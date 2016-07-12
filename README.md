@@ -1,1 +1,1 @@
-####### build to ../cordova/www
+build to ../cordova/www
