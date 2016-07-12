@@ -1,0 +1,166 @@
+<dom-module id="daftar-tagihan">
+    <style>
+        .teks-waktu {
+            margin-right: 10px;
+        }
+
+        paper-button {
+            color: #FFAB00;
+            margin: 0;
+            text-align: right;
+        }
+
+        .wadah-tombol {
+            margin-top: 8px;
+        }
+        a { text-decoration: none; }
+        span[role="button"] { 
+            color: #FFAB00;
+            margin-left: 10px;
+        }
+
+        /**************** PAPER - MATERIAL ************************/
+        paper-material {
+            border-radius: 2px;
+            height: 100%;
+            padding: 16px 0 16px 0;
+            width: calc(98.66% - 16px);
+            margin: 16px auto;
+            background: white;
+        }
+
+        @media (min-width: 601px) {
+            paper-material {
+                width: calc(98% - 46px); /* tadinya dikurang 46px */
+                margin-bottom: 16px; /* tadinya 32px */
+                padding-left: 30px;
+                padding-right: 30px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            paper-material {
+                --menu-container-display: none;
+                width: calc(90.33% - 32px);
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+        }
+        /**********************************************************/
+    </style>
+
+
+
+    <template>
+
+        <template is="dom-repeat" items="{{tagihan}}">
+            <paper-material>
+                <div class="horizontal layout">
+                    <span class="teks-nama">{{item.nama}}</span> 
+                    <span class="flex"></span>
+                    <span>Rp<span>{{item.jumlah}}</span>.000</span>
+                </div>
+                <div class="wadah-tombol horizontal layout">
+                    <span class="teks-waktu">{{item.waktu}}</span>
+                    <span class="flex"></span>
+                    <a href="#"><span role="button" on-tap="edit">Edit</span></a>
+                    <a href="#"><span role="button" on-tap="lunas">Lunas</span></a>
+                </div>
+            </paper-material>
+        </template>
+
+        <edit-tagihan trigger-refresh="{{triggerRefresh}}" trigger="{{triggerEdit}}" tagihan="{{tagihan}}" id="{{id}}" nama="{{nama}}" jumlah="{{jumlah}}"></edit-tagihan>
+
+    </template>
+</dom-module>
+
+
+
+
+<script src="jquery.min.js"></script>
+<script>
+    (function() {
+        Polymer({
+            is: 'daftar-tagihan',
+            properties: {
+                tagihan: { type: Array, notify: true},
+                id: Number,
+                nama: { type: String },
+                jumlah: { type: Number },
+                total: { type: Number, notify: true },
+                triggerEdit: Boolean,
+                triggerRefresh: { type: Number, observer: '_refreshClick' }
+            },
+
+
+            ready: function() {
+            },
+
+
+            edit: function(e) {
+                this.id = e.model.item.id
+                this.nama = e.model.item.nama;
+                this.jumlah = e.model.item.jumlah;
+                this.triggerEdit = true;
+            },
+
+
+            lunas: function(e) {
+                var ini = this;
+                this.id = e.model.item.id;
+
+                $.ajax({
+                    url: 'http://rianwardana.com/tagihan/api/lunas',
+                    type: 'post',
+                    data: { id: ini.id },
+                    success: function(respons) {
+                        ini.isiUlang();   
+                    }
+                });
+            },
+
+
+            isiUlang: function() {
+                console.log('isiUlang');
+                document.querySelector('#refreshSpinner').style.display = 'block';
+                document.querySelector('#refreshButton').style.display = 'none'; 
+
+                var ini = this;
+
+                $.ajax({
+                    url: 'http://rianwardana.com/tagihan/api',
+                    success: function(respons) {
+                        ini.tagihan = [];
+                        var data = JSON.parse(respons);
+                        var total = 0;
+
+                        $.each(data, function(i, tagihan) {
+                            var date = new Date(tagihan.waktu * 1000);
+                            var jumlah = parseInt(tagihan.jumlah)
+                            ini.push('tagihan', {
+                                id: tagihan.id,
+                                waktu: (date.getDate() < 10 ? '0' : '') + date.getDate() + '/' + (date.getMonth()+1 < 10 ? '0' : '') + (date.getMonth()+1) + '/' + (date.getFullYear()-2000),
+                                nama: tagihan.nama,
+                                jumlah: jumlah.toLocaleString('id')
+                            });
+                            total += jumlah;
+                        });
+
+                        ini.total = 'Rp' + (total > 0 ? total.toLocaleString('id') + '.000' : '0');
+                    },
+                    complete: function() {
+                        document.querySelector('#refreshSpinner').style.display = 'none';
+                        document.querySelector('#refreshButton').style.display = 'block';
+                    }
+                });
+            },
+
+
+            _refreshClick: function() {
+                this.isiUlang();
+            }
+
+
+        });
+    })();
+</script>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+        <meta name="theme-color" content="#388E3C">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="application-name" content="Tagihan Rian">
+        <script src="bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+        <link rel="import" href="elements/imports.html">
+        <!-- <script type="text/javascript" src="cordova.js"></script> -->
+        <title>Tagihan Rian</title>
+
+        <style>
+           html {
+                -webkit-user-select: none;
+            }
+
+             body {
+                background: #4CAF50;
+                font-family: 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                color: #fff;
+                -webkit-tap-highlight-color: rgba(0,0,0,0);
+                -webkit-tap-highlight-color: transparent;
+            }
+        </style>
+    </head>
+
+    <body class="unresolved">
+        <div id="clue" class="horizontal layout center-justified" style="margin-top: 20px;">
+            <span id="digit_0" class="paper-font-display4">1</span>
+            <span id="digit_1" class="paper-font-display4">2</span>
+            <span id="digit_2" class="paper-font-display4">3</span>
+            <span id="digit_3" class="paper-font-display4">4</span>
+        </div>
+
+        <div id="keypad" style="margin-top: 20px;">
+            <div class="horizontal layout around-justified">
+                <paper-button onclick="verify(1)"><span class="paper-font-display3">1</span></paper-button>
+                <paper-button onclick="verify(2)"><span class="paper-font-display3">2</span></paper-button>
+                <paper-button onclick="verify(3)"><span class="paper-font-display3">3</span></paper-button>
+            </div>
+            <div class="horizontal layout around-justified">
+                <paper-button onclick="verify(4)"><span class="paper-font-display3">4</span></paper-button>
+                <paper-button onclick="verify(5)"><span class="paper-font-display3">5</span></paper-button>
+                <paper-button onclick="verify(6)"><span class="paper-font-display3">6</span></paper-button>
+            </div>
+            <div class="horizontal layout around-justified">
+                <paper-button onclick="verify(7)"><span class="paper-font-display3">7</span></paper-button>
+                <paper-button onclick="verify(8)"><span class="paper-font-display3">8</span></paper-button>
+                <paper-button onclick="verify(9)"><span class="paper-font-display3">9</span></paper-button>
+            </div>
+            <div class="horizontal layout around-justified">
+                <paper-button onclick="verify(0)"><span class="paper-font-display3">0</span></paper-button>
+            </div>
+        </div>
+
+        <script>
+            function positionize() {
+                var window_height = window.innerHeight
+                var clue_height = document.getElementById('clue').clientHeight
+                var keypad_height = document.getElementById('keypad').clientHeight
+
+                clue_mt = 58.5 //(window_height - keypad_height - clue_height) / 2
+
+                document.getElementById('clue').style.marginTop = clue_mt + 'px'
+                document.getElementById('keypad').style.marginTop = clue_mt + 'px'
+            }
+
+            var key = []
+            var granted = []
+
+
+            function randomize(number_of_clue, number_of_op, number_of_key) {
+                current_digit = 0
+                global_nok = number_of_key
+                key = []
+                granted = []
+                var clue = []
+                var op = []
+                var split = []
+
+                for(var a = 0; a < number_of_clue; a++) {
+                    clue[a] = Math.floor(Math.random() * 9 + 1)
+                    document.getElementById("digit_" + a).innerHTML = clue[a]
+                }
+
+                op.push( clue[0] * clue[3] + (clue[0] * clue[3] < 10 ? 10 : 0) )
+                op.push( clue[1] + clue[2] + (clue[1] + clue[2] < 10 ? 20 : 0) )
+
+                var a = 0;
+                for(var b = 0; b < number_of_op; b++) {
+                    for(var c = 0; c < op[b].toString().split('').length; c++) {
+                        split[a] = Number(op[b].toString().split('')[c])
+                        a++
+                    }
+                }
+
+                key.push(split[1])
+                key.push(split[3])
+
+                console.log("Random clue generated, key:")
+                for(var a = 0; a < number_of_key; a++) {
+                    console.log(key[a])
+                    granted.push(false)
+                }
+            }
+        
+
+            /*function randomize() {
+                current_digit = 0
+                granted = [false, false, false, false]
+
+                var d1 = Math.floor(Math.random() * 9 + 1)
+                var d2 = Math.floor(Math.random() * 9 + 1)
+                var d3 = Math.floor(Math.random() * 9 + 1)
+                var d4 = Math.floor(Math.random() * 9 + 1)
+                document.getElementById("digit_0").innerHTML = d1
+                document.getElementById("digit_1").innerHTML = d2
+                document.getElementById("digit_2").innerHTML = d3
+                document.getElementById("digit_3").innerHTML = d4
+                
+                var op_1 = (d1 * d4) + ((d1 * d4) < 10 ? 10 : 0)
+                var op_2 = (d2 + d3 - 2) + ((d2 + d3 - 2) < 10 ? 20 : 0)
+
+                var split_1 = op_1.toString().split('')
+                var split_2 = op_2.toString().split('')
+
+                key[1] = Number(split_1[0])
+                key[2] = Number(split_1[1])
+                key[3] = Number(split_2[0])
+                key[4] = Number(split_2[1])
+
+                console.log(key[1])
+                console.log(key[2])
+                console.log(key[3])
+                console.log(key[4])
+            }*/
+
+
+            function verify(number) {
+                if (current_digit < global_nok) {
+                    if (number == key[current_digit]) granted[current_digit] = true
+                    else granted[current_digit] = false
+                }
+
+                current_digit++
+
+                if (current_digit == global_nok) {
+                    for(var a = 0; a < global_nok; a++) {
+                        open = true
+                        if (!granted[a]) {
+                            open = false
+                            randomize(4, 2, 2)
+                            break
+                        }
+                    }
+                    if (open) window.location.replace('tagihan.html')
+                }
+            }
+            
+            positionize()
+            randomize(4, 2, 2)
+
+            function onDeviceReady() { StatusBar.backgroundColorByHexString("#388E3C") }
+            document.addEventListener("deviceready", onDeviceReady, false);
+        </script>
+    </body>
+</html>

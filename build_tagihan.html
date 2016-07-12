@@ -1,0 +1,135 @@
+<!doctype html>
+<html>
+    <head>
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+        <meta name="theme-color" content="#388E3C">
+        <meta name="application-name" content="Tagihan Rian">
+        <title>Tagihan Rian</title>
+        
+        <script src="bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+        <!-- <script type="text/javascript" src="cordova.js"></script> -->
+        <link rel="import" href="elements/imports.html">
+
+        <style>
+            html {
+                -webkit-user-select: none;
+            }
+
+             body {
+                background: #f7f7f7;
+                font-family: 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                color: #333;
+                -webkit-tap-highlight-color: rgba(0,0,0,0);
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            paper-spinner {
+                display: none;
+                height: 20px;
+                margin-right: 10px;
+                width: 20px;
+            }
+
+            #bottom-toolbar {
+                margin-left: 65px;
+            }
+
+            @media (min-width: 640px) {
+                #bottom-toolbar {
+                    margin-left: 0;
+                }
+            }
+
+            iron-image {
+                width: 256px;
+                height: 200px;
+            }
+
+            paper-fab {
+                position: fixed;
+                right: 5%;
+                bottom: 5%;
+            }
+
+            paper-input[label="Nama"] { margin-right: 20px; }
+            paper-input[type="number"] { width:200px; }
+            paper-button {
+                color: --var(accent-color);
+                margin: 0;
+                text-align: right;
+            }
+
+            @media (max-width: 600px) {
+                section[halaman="Tagihan"] { margin-bottom: 100px; }
+            }
+
+            @media (min-width: 601px) {
+                ::-webkit-scrollbar {
+                    width: 5px;
+                }
+                 
+                ::-webkit-scrollbar-thumb {
+                    background: #d1d1d1;
+                }
+            }
+        </style>
+    </head>
+
+    <body class="unresolved fullbleed layout vertical">
+        <span id="browser-sync-binding"></span>
+        
+        <template is="dom-bind" id="app">
+            <paper-drawer-panel id="paperDrawerPanel">
+                <div drawer class="vertical layout">
+                    <iron-image sizing="cover" src="images/tagihan.jpg"></iron-image>
+                    <paper-menu selected="{{halaman_sekarang}}" attr-for-selected="halaman" on-iron-select="onMenuSelect">
+                        <paper-item halaman="Tagihan">Tagihan</paper-item>
+                        <paper-item halaman="Ringkasan">Ringkasan</paper-item>
+                        <!-- <paper-item halaman="Pengaturan">Pengaturan</paper-item> -->
+                    </paper-menu>
+                </div>
+
+                <paper-header-panel main mode="waterfall-tall" tall-class="medium-tall">
+                    <!-- Main Toolbar -->
+                    <paper-toolbar id="mainToolbar">
+                        <paper-icon-button id="paperToggle" icon="menu" paper-drawer-toggle></paper-icon-button>
+                        <p class="paper-font-title">{{halaman_sekarang}}</p>
+                        <span class="flex"></span>
+                        <paper-icon-button id="refreshButton" icon="refresh" on-tap="refreshClick"></paper-icon-button>
+                        <paper-spinner id="refreshSpinner" active></paper-spinner>
+                        <div class="bottom">
+                            <p id="bottom-toolbar" class="paper-font-subtitle horizontal layout">
+                                Tagihan bulan ini <b style="margin-left: 10px;">{{total}}</b>
+                            </p>
+                        </div>
+                    </paper-toolbar>
+                    
+                    <!-- Main Content -->
+                    <div class="content">
+                        <iron-pages class="" selected="{{halaman_sekarang}}" attr-for-selected="halaman">
+                            
+                            <section halaman="Tagihan">
+                                <daftar-tagihan tagihan="{{tagihan}}" total="{{total}}" trigger-refresh="[[triggerRefresh]]"></daftar-tagihan>
+                                <paper-fab icon="add" on-tap="fabClick"></paper-fab>
+                                <tambah-tagihan tagihan="{{tagihan}}" dibuka="{{triggerTambah}}" trigger-refresh="{{triggerRefresh}}"></tambah-tagihan>
+                            </section>
+
+
+                            <section halaman="Ringkasan">
+                                <ringkasan-tagihan tagihan="{{tagihan}}"></ringkasan-tagihan>
+                            </section>
+
+
+                            <section halaman="Pengaturan">
+                            </section>
+
+                        </iron-pages>
+                    </div>
+                </paper-header-panel>
+            </paper-drawer-panel>
+        </template>
+        
+        <script src="elements/jquery.min.js"></script>
+        <script src="src/app.js"></script>
+    </body>
+</html>

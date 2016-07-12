@@ -1,0 +1,349 @@
+<dom-module id="ringkasan-tagihan">
+    <style>
+        paper-button {
+            color: #FFAB00;
+            margin: 0;
+            text-align: right;
+        }
+
+        a { text-decoration: none; }
+        span[role="button"] { 
+            color: #FFAB00;
+            margin-left: 10px;
+        }
+
+        .paper-font-display1 {
+            margin-top: 14px;
+            margin-bottom: 0;
+        }
+        
+        p[judul].paper-font-body1 {
+            margin-top: 0;
+        }
+
+        .paper-font-body1 {
+            margin-bottom: 0;
+        }
+
+        p[total].paper-font-display2 {
+            margin: 0;
+        }
+
+        p[total].paper-font-body1 {
+            margin: 0;
+        }
+
+        paper-menu-button { padding: 0; }
+       
+        paper-button.dropdown-trigger {
+            background: var(--default-primary-color);
+            color: #FFF;
+            width: 200px;
+            margin: 16px auto 0 auto;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            paper-menu-button {
+               margin-left: calc((9.67%)/2);
+            }
+        }
+
+		paper-menu.dropdown-content {
+			width: 200px;
+            margin: 18px 18px 0 18px;
+		}
+
+        .chart { height: 20px; }
+        .legend { margin-top: 14px; margin-right: 10px; width: 28px; }
+        #color-makan { background-color: #1abc9c }
+        #color-laundry { background-color: #3498db }
+        #color-pulsa { background-color: #34495e }
+        #color-kuliah { background-color: #f1c40f }
+        #color-transportasi { background-color: #e74c3c }
+        #color-lainnya { background-color: #95a5a6 }
+        
+        /**************** PAPER - MATERIAL ************************/
+        paper-material {
+            background: white;
+            border-radius: 2px;
+            height: 100%;
+            margin: 16px auto;
+        }
+
+        @media (min-width: 601px) {
+            paper-material {
+                margin-bottom: 16px; /* tadinya 32px */
+                padding: 30px;
+                width: calc(98% - 46px);
+            }
+        }
+
+        @media (max-width: 600px) {
+            paper-material {
+                --menu-container-display: none;
+                padding: 16px;
+                width: calc(90.33% - 32px);
+            }
+        }
+        /**********************************************************/
+    </style>
+
+
+
+    <template>
+        <paper-menu-button>
+            <paper-button class="dropdown-trigger" raised>Bulan <span>{{bulanTerpilih}}</span></paper-button>
+            <paper-menu class="dropdown-content" selected="{{bulanTerpilih}}" attr-for-selected="nama">
+                <template is="dom-repeat" items="{{pilihanBulan}}">
+                    <paper-item nama="{{item.nama}}" on-tap="pilihBulan">{{item.nama}}</paper-item>
+                </template>
+            </paper-menu>
+        </paper-menu-button>
+
+        <paper-material>
+            <p judul class="paper-font-body1"><b>Tagihan lunas untuk bulan <span>{{bulanTerpilih}}</span> <span>{{tahunTerpilih}}</span></b></p>
+        	<template is="dom-repeat" items="{{terbayar}}">
+        	    <div class="horizontal layout">
+        	        <p class="paper-font-body1">
+        	            <span style="margin-right: 10px;">{{item.waktu}}</span>
+        	            <span>{{item.nama}}</span>
+        	        </p>
+        	        <span class="flex"></span>
+        	        <div style="width: 70px;">
+        	            <p class="paper-font-body1">Rp<span>{{item.jumlah}}</span>.000</p>
+        	        </div>
+        	    </div>
+        	</template>
+
+            <template is="dom-if" if="{{terbayarkosong}}">
+            	<div class="horizontal layout">
+        	        <p class="paper-font-body1">
+        	            <span>Tidak ada tagihan lunas</span>
+        	        </p>
+        	    </div>
+            </template>
+
+            <template is="dom-if" if="{{terbayarloading}}">
+                <div class="horizontal layout">
+                    <p class="paper-font-body1">
+                        <span>Memuat data...</span>
+                    </p>
+                </div>
+            </template>
+        </paper-material>
+
+        <template is="dom-if" if="{{!terbayarloading}}">
+            <template is="dom-if" if="{{!terbayarkosong}}">
+                <paper-material id="chart">
+                    <div class="horizontal layout" style="margin-bottom: 20px;">
+                        <div class="chart" id="color-makan" style="width: 30%;"></div>
+                        <div class="chart" id="color-laundry" style="width: 20%;"></div>
+                        <div class="chart" id="color-pulsa" style="width: 15%;"></div>
+                        <div class="chart" id="color-kuliah" style="width: 5%;"></div>
+                        <div class="chart" id="color-transportasi" style="width: 20%;"></div>
+                        <div class="chart" id="color-lainnya" style="width: 30%;"></div>
+                    </div>
+                    
+                    <div class="horizontal layout">
+                        <div class="legend" id="color-makan"></div>
+                        <p class="paper-font-body1">Makan</p>
+                        <span class="flex"></span>
+                        <div style="width: 70px;">
+                            <p class="paper-font-body1">Rp<span>{{totalMakan}}</span></p>
+                        </div>
+                    </div>
+
+                    <div class="horizontal layout">
+                        <div class="legend" id="color-laundry"></div>
+                        <p class="paper-font-body1">Laundry</p>
+                        <span class="flex"></span>
+                        <div style="width: 70px;">
+                            <p class="paper-font-body1">Rp<span>{{totalLaundry}}</span></p>
+                        </div>
+                    </div>
+
+                    <div class="horizontal layout">
+                        <div class="legend" id="color-pulsa"></div>
+                        <p class="paper-font-body1">Pulsa</p>
+                        <span class="flex"></span>
+                        <div style="width: 70px;">
+                            <p class="paper-font-body1">Rp<span>{{totalPulsa}}</span></p>
+                        </div>
+                    </div>
+
+                    <div class="horizontal layout">
+                        <div class="legend" id="color-kuliah"></div>
+                        <p class="paper-font-body1">Keperluan kuliah</p>
+                        <span class="flex"></span>
+                        <div style="width: 70px;">
+                            <p class="paper-font-body1">Rp<span>{{totalKuliah}}</span></p>
+                        </div>
+                    </div>
+
+                    <div class="horizontal layout">
+                        <div class="legend" id="color-transportasi"></div>
+                        <p class="paper-font-body1">Transportasi</p>
+                        <span class="flex"></span>
+                        <div style="width: 70px;">
+                            <p class="paper-font-body1">Rp<span>{{totalTransportasi}}</span></p>
+                        </div>
+                    </div>
+
+                    <div class="horizontal layout">
+                        <div class="legend" id="color-lainnya"></div>
+                        <p class="paper-font-body1">Lainnya</p>
+                        <span class="flex"></span>
+                        <div style="width: 70px;">
+                            <p class="paper-font-body1">Rp<span>{{totalLainnya}}</span></p>
+                        </div>
+                    </div>
+                </paper-material>
+
+                <paper-material>
+                    <p total class="horizontal center-justified layout paper-font-display2">Rp<span>{{totalTerpilih}}</span></p>
+                    <p total class="horizontal center-justified layout paper-font-body1">Total</p>
+                </paper-material>
+            </template>
+        </template>
+
+    </template>
+</dom-module>
+
+
+
+
+<script src="jquery.min.js"></script>
+<script>
+    (function() {
+      Polymer({
+        is: 'ringkasan-tagihan',
+        properties: {
+        	bulanTerpilih: String,
+        	pilihanBulan: { type: Array, value: [ {no: 1, nama: 'Januari'}, {no: 2, nama: 'Februari'}, {no: 3, nama: 'Maret'}, {no: 4, nama: 'April'}, {no: 5, nama: 'Mei'}, {no: 6, nama: 'Juni'}, {no: 7, nama: 'Juli'}, {no: 8, nama: 'Agustus'}, {no: 9, nama: 'September'}, {no: 10, nama: 'Oktober'}, {no: 11, nama: 'November'}, {no: 12, nama: 'Desember'} ] },
+            tagihan: { type: Array, observer: 'hitung' },
+            tahunTerpilih: { type: Number, value: 2015 },
+            terbayar: Array,
+            terbayarkosong: { type: Boolean, value: false },
+            terbayarloading: { type: Boolean, value: false },
+            // total: { type: String, notify: true },
+            totalTerpilih: { type: Number },
+            totalMakan: { type: Number },
+            totalLaundry: { type: Number },
+            totalPulsa: { type: Number },
+            totalKuliah: { type: Number },
+            totalTransportasi: { type: Number },
+            totalLainnya: { type: Number },
+            widthMakan: Number,
+            widthLaundry: Number,
+            widthPulsa: Number,
+            widthKuliah: Number,
+            widthTransportasi: Number,
+            widthLainnya: Number
+        },
+
+
+        ready: function() {
+        	var sekarang = new Date();
+        	this.bulanTerpilih = this.pilihanBulan[sekarang.getMonth()].nama;
+            this.tahunTerpilih = sekarang.getFullYear();
+        },
+
+
+        hitung: function() {
+            console.log('Hitung awal dan akhir');
+
+            dateNowEpoch = Math.floor(Date.now() / 1000);
+            dateNow = new Date();
+            start = (dateNowEpoch - (dateNow.getDate() - 1) * 86400) - (dateNow.getHours() * 3600) - (dateNow.getMinutes() * 60) - dateNow.getSeconds();
+            end = dateNowEpoch;
+
+            // var ini = this;
+            // $.ajax({
+            //     url: 'http://rianwardana.com/tagihan/api/total',
+            //     type: 'post',
+            //     data: { awal: start, akhir: end },
+            //     success: function(respons) {
+            //         var total = parseInt(respons);
+            //         ini.total = 'Rp' + (total > 0 ? total.toLocaleString('id') + '.000' : '0');
+            //     }
+            // });
+
+            this.daftarTerbayar(start, end);
+            this.ready();
+        },
+
+
+        pilihBulan: function(e) {
+        	var pilihanBulanNo = e.model.item.no;
+        	var pilihanBulanNama = e.model.item.nama;
+
+        	var sekarang = new Date();
+        	var tahun = (pilihanBulanNo <= sekarang.getMonth() + 1 ? sekarang.getFullYear() : sekarang.getFullYear() - 1 );
+            this.tahunTerpilih = tahun;
+
+        	var awal = new Date(tahun, pilihanBulanNo - 1, 1).getTime() / 1000;
+        	var akhir = new Date(tahun, pilihanBulanNo, 1).getTime() / 1000;
+
+        	this.bulanTerpilih = pilihanBulanNama;
+        	this.daftarTerbayar(awal, akhir);
+        },
+
+
+        // coba pake iron-ajax dah...
+        daftarTerbayar: function(start, end) {
+            this.terbayar = [];
+            this.terbayarloading = true;
+            this.terbayarkosong = false;
+            this.totalTerpilih = 0;
+            this.totalMakan = this.totalLaundry = this.totalPulsa = this.totalKuliah = this.totalTransportasi = this.totalLainnya = 0;
+
+            var ini = this;
+            $.ajax({
+                url: 'http://rianwardana.com/tagihan/api/terbayar/' + start + '/' + end,
+                success: function(respons) {
+                    var data = JSON.parse(respons);
+                    $.each(data, function(i, tagihan) {
+                        var date = new Date(tagihan.waktu * 1000);
+                        var jumlah = parseInt(tagihan.jumlah)
+                        ini.push('terbayar', {
+                            id: tagihan.id,
+                            waktu: (date.getDate() < 10 ? '0' : '') + date.getDate() + '/' + (date.getMonth()+1 < 10 ? '0' : '') + (date.getMonth()+1) + '/' + (date.getFullYear()-2000),
+                            nama: tagihan.nama,
+                            jumlah: jumlah.toLocaleString('id')
+                        });
+                        ini.totalTerpilih += (jumlah * 1000);
+
+                        if (tagihan.nama == ("Makan" || "Minum" || "Obat" || "Snack"))  ini.totalMakan += (jumlah * 1000);
+                        else if (tagihan.nama == "Laundry")                             ini.totalLaundry += (jumlah * 1000);
+                        else if (tagihan.nama.match(/pulsa/i))                          ini.totalPulsa += (jumlah * 1000);
+                        else if (tagihan.nama.match(/buku/i))                           ini.totalKuliah += (jumlah * 1000);
+                        else if (tagihan.nama == "Transportasi")                        ini.totalTransportasi += (jumlah * 1000);
+                        else                                                            ini.totalLainnya += (jumlah * 1000);
+                    });
+                    document.querySelector('#color-makan').style.width =        ((ini.totalMakan / ini.totalTerpilih) * 100) + '%';
+                    document.querySelector('#color-laundry').style.width =      ((ini.totalLaundry / ini.totalTerpilih) * 100) + '%';
+                    document.querySelector('#color-pulsa').style.width =        ((ini.totalPulsa / ini.totalTerpilih) * 100) + '%';
+                    document.querySelector('#color-kuliah').style.width =       ((ini.totalKuliah / ini.totalTerpilih) * 100) + '%';
+                    document.querySelector('#color-transportasi').style.width = ((ini.totalTransportasi / ini.totalTerpilih) * 100) + '%';
+                    document.querySelector('#color-lainnya').style.width =      ((ini.totalLainnya / ini.totalTerpilih) * 100) + '%';
+                },
+                complete: function() {
+                    ini.terbayarloading = false;
+                    ini.totalTerpilih = ini.totalTerpilih.toLocaleString('id')
+                    if (ini.terbayar.length < 1) ini.terbayarkosong = true;
+
+                    ini.totalMakan = ini.totalMakan.toLocaleString('id');
+                    ini.totalLaundry = ini.totalLaundry.toLocaleString('id');
+                    ini.totalPulsa = ini.totalPulsa.toLocaleString('id');
+                    ini.totalKuliah = ini.totalKuliah.toLocaleString('id');
+                    ini.totalTransportasi = ini.totalTransportasi.toLocaleString('id');
+                    ini.totalLainnya = ini.totalLainnya.toLocaleString('id');
+                }
+            });
+        }
+
+
+      });
+    })();
+</script>

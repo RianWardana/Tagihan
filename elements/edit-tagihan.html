@@ -1,0 +1,172 @@
+<dom-module id="edit-tagihan">
+    <style>
+        paper-dialog {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            margin: 0;
+            padding: 0;
+        }
+
+        @media (min-width: 601px) {
+            paper-dialog {
+                width: 350px;
+            }
+        }
+
+        paper-input[type="number"] {
+            width: 7em;
+        }
+
+        paper-button {
+            color: #FFAB00;
+            margin: 0;
+            text-align: center;
+        }
+
+        paper-toast { z-index: 999; }
+    </style>
+
+
+
+    <template>
+
+        <paper-dialog modal id="dialog" style="max-height: 200px;">
+            <h2>Edit Tagihan</h2>
+            <div class="horizontal layout">
+                <paper-input no-label-float class="flex" label="Nama" value="{{nama}}" maxlength="16"></paper-input>
+                <paper-input no-label-float type="number" value="{{jumlah}}" auto-validate pattern="[0-9]*" maxlength="3">
+                    <div prefix>Rp</div>
+                    <div suffix>.000</div>
+                </paper-input>
+            </div>
+            <div class="buttons">
+                <paper-button dialog-confirm>Batal</paper-button>
+                <paper-button dialog-confirm on-tap="hapus">Hapus</paper-button>
+                <paper-button dialog-confirm on-tap="simpan">Simpan</paper-button>
+            </div>
+        </paper-dialog>
+        
+        <paper-toast id="toastSukses" text="Perubahan berhasil disimpan."></paper-toast>
+        <paper-toast id="toastHapus" text="Tagihan dihapus."></paper-toast>
+        <paper-toast id="toastKosong" text="Nama dan Jumlah tidak boleh kosong."></paper-toast>
+
+    </template>
+</dom-module>
+
+
+
+
+<script src="jquery.min.js"></script>
+<script>
+    (function() {
+      Polymer({
+        is: 'edit-tagihan',
+        properties: {
+            tagihan: { type: Array, notify: true },
+            id: Number,
+            nama: { type: String, notify: true },
+            jumlah: { type: Number, notify: true },
+            trigger: { type: Boolean, notify: true, observer: '_bukaDialog' },
+            triggerRefresh: { type: Number, notify: true }
+        },
+
+
+        ready: function() {
+           
+        },
+
+
+        _bukaDialog: function() {
+            this.$.dialog.open();
+            this.trigger = false;
+
+            var dialogHeight, dialogWidth, dialogLeft, dialogTop
+            var dialog = Polymer.dom(this.root).querySelector("#dialog")
+
+            function setPositionVertical() {
+                dialogHeight = $(dialog).height()
+                dialogTop = (window.innerHeight - dialogHeight) / 3
+                $(dialog).css("top", dialogTop + "px")
+            }
+
+            function setPositionHorizontal() {
+                if (window.innerWidth > 600) {
+                    dialogWidth = $(dialog).width()
+                    dialogLeft = (window.innerWidth - dialogWidth) / 2
+                    $(dialog).css("margin-left", dialogLeft + "px")
+                } else $(dialog).css("margin-left", 0 + "px")
+            }
+
+            $(window).resize(function() {
+                setPositionVertical()
+                setPositionHorizontal()
+            })
+
+            setPositionVertical()
+            setPositionHorizontal()
+        },
+
+
+        simpan: function() {
+            if ( (this.nama != '') && (this.jumlah != '') ) {
+                this._showSpinner();
+                
+                this.data = {
+                    id: this.id,
+                    nama: this.nama,
+                    jumlah: this.jumlah,
+                };
+
+                var ini = this;
+                $.ajax({
+                    url: 'http://rianwardana.com/tagihan/api/edit',
+                    type: 'post',
+                    data: ini.data,
+                    success: function() { 
+                        ini.$.toastSukses.show();
+                    },
+                    complete: function() {
+                        ini.triggerRefresh = Math.random();
+                        // ini._hideSpinner();
+                    }
+                });
+            }
+            else this.$.toastKosong.show();
+        },
+
+
+        hapus: function() {
+            this._showSpinner();
+            this.data = { id: this.id };
+            var ini = this;
+            $.ajax({
+                url: 'http://rianwardana.com/tagihan/api/hapus',
+                type: 'post',
+                data: ini.data,
+                success: function() { 
+                    ini.$.toastHapus.show();
+                },
+                complete: function() {
+                    ini.triggerRefresh = Math.random();
+                    // ini._hideSpinner();
+                }
+            });
+        },
+
+
+        _showSpinner: function() {
+            document.querySelector('#refreshSpinner').style.display = 'block';
+            document.querySelector('#refreshButton').style.display = 'none';
+        },
+
+        _hideSpinner: function() {
+            document.querySelector('#refreshSpinner').style.display = 'none';
+            document.querySelector('#refreshButton').style.display = 'block';
+        }
+
+
+      });
+    })();
+</script>

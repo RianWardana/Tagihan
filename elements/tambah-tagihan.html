@@ -1,0 +1,154 @@
+<dom-module id="tambah-tagihan">
+    <style>
+        :root {
+            --paper-dialog-background-color: white;
+        }
+
+        paper-dialog {
+            position: fixed;
+            margin: 0;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+        }
+
+        @media (min-width: 601px) {
+            paper-dialog {
+                width: 350px;
+            }
+        }
+
+        paper-input[label="Nama"] { margin-right: 20px; }
+        paper-input[type="number"] { width: 7em; }
+        paper-button {
+            color: #FFAB00;
+            margin: 0;
+            text-align: right;
+        }
+        
+        paper-toast { z-index: 999; }
+    </style>
+
+
+
+    <template>
+
+        <paper-dialog modal id="dialog" style="max-height: 200px;">
+            <h2>Tambah Tagihan</h2>
+            <div class="horizontal layout">
+                <paper-input no-label-float label="Nama" value="{{nama}}" maxlength="16"></paper-input>
+                <paper-input no-label-float type="number" value="{{jumlah}}" auto-validate pattern="[0-9]*" maxlength="3">
+                    <div prefix>Rp</div>
+                    <div suffix>.000</div>
+                </paper-input>
+            </div>
+            <div class="buttons">
+                <paper-button dialog-confirm on-tap="_showFab">Batal</paper-button>
+                <paper-button dialog-confirm on-tap="tambah">Tambah</paper-button>
+            </div>
+        </paper-dialog>
+
+        <paper-toast id="toastSukses" text="Tagihan berhasil ditambah."></paper-toast>
+        <paper-toast id="toastKosong" text="Nama dan Jumlah tidak boleh kosong."></paper-toast>
+
+    </template>
+</dom-module>
+
+
+
+
+<script src="jquery.min.js"></script>
+<script>
+    (function() {
+      Polymer({
+        is: 'tambah-tagihan',
+        properties: {
+            dibuka: { type: Boolean, notify: true, observer: '_bukaDialog' },
+            tagihan: { type: Array, notify: true },
+            nama: String,
+            jumlah: Number,
+            triggerRefresh: { type: Number, notify: true }
+        },
+
+
+        ready: function() {
+        },
+
+
+        tambah: function() {
+            if ( (this.nama != '') && (this.jumlah != '') ) {
+                var ini = this;
+                this.data = {
+                    waktu: Math.floor(Date.now() / 1000),
+                    nama: this.nama,
+                    jumlah: this.jumlah
+                }
+                $.ajax({
+                    url: 'http://rianwardana.com/tagihan/api/tambah',
+                    type: 'post',
+                    data: ini.data,
+                    success: function(respons) { 
+                        ini.nama = '';
+                        ini.jumlah = '';
+                        ini.$.toastSukses.show();
+                    },
+                    complete: function() {
+                        ini._showFab();
+                        ini.triggerRefresh = Math.random()
+                    }
+                });
+            }
+
+            else this.$.toastKosong.show();
+        },
+
+
+        _bukaDialog: function() {
+            if (this.dibuka) {
+                this.$.dialog.open();
+                this._hideFab();
+                this.dibuka = false;
+            }
+
+            var dialogHeight, dialogWidth, dialogLeft, dialogTop
+            var dialog = Polymer.dom(this.root).querySelector("#dialog")
+
+            function setPositionVertical() {
+                dialogHeight = $(dialog).height()
+                dialogTop = (window.innerHeight - dialogHeight) / 3
+                $(dialog).css("top", dialogTop + "px")
+            }
+
+            function setPositionHorizontal() {
+                if (window.innerWidth > 600) {
+                    dialogWidth = $(dialog).width()
+                    dialogLeft = (window.innerWidth - dialogWidth) / 2
+                    $(dialog).css("margin-left", dialogLeft + "px")
+                } else $(dialog).css("margin-left", 0 + "px")
+            }
+
+            $(window).resize(function() {
+                setPositionVertical()
+                setPositionHorizontal()
+            })
+
+            setPositionVertical()
+            setPositionHorizontal()
+        },
+
+        _hideFab: function() {
+            document.querySelector('paper-fab').style.display = 'none';
+            document.querySelector('#refreshSpinner').style.display = 'block';
+            document.querySelector('#refreshButton').style.display = 'none';
+        },
+
+        _showFab: function() {
+            document.querySelector('paper-fab').style.display = 'block';
+            document.querySelector('#refreshSpinner').style.display = 'none';
+            document.querySelector('#refreshButton').style.display = 'block';
+        }
+
+
+      });
+    })();
+</script>
