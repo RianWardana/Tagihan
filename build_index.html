@@ -22,18 +22,30 @@
                 -webkit-tap-highlight-color: rgba(0,0,0,0);
                 -webkit-tap-highlight-color: transparent;
             }
+
+            #clue {
+            	opacity: 0;
+            	margin-top: 20px;
+            	transition: opacity 1s;
+            }
+
+            #keypad {
+            	opacity: 0;
+            	margin-top: 20px;
+            	transition: opacity 1s;
+            }
         </style>
     </head>
 
     <body class="unresolved">
-        <div id="clue" class="horizontal layout center-justified" style="margin-top: 20px;">
+        <div id="clue" class="horizontal layout center-justified">
             <span id="digit_0" class="paper-font-display4">1</span>
             <span id="digit_1" class="paper-font-display4">2</span>
             <span id="digit_2" class="paper-font-display4">3</span>
             <span id="digit_3" class="paper-font-display4">4</span>
         </div>
 
-        <div id="keypad" style="margin-top: 20px;">
+        <div id="keypad">
             <div class="horizontal layout around-justified">
                 <paper-button onclick="verify(1)"><span class="paper-font-display3">1</span></paper-button>
                 <paper-button onclick="verify(2)"><span class="paper-font-display3">2</span></paper-button>
@@ -56,14 +68,35 @@
 
         <script>
             function positionize() {
+            	var window_width = window.innerWidth
                 var window_height = window.innerHeight
                 var clue_height = document.getElementById('clue').clientHeight
                 var keypad_height = document.getElementById('keypad').clientHeight
 
-                clue_mt = 58.5 //(window_height - keypad_height - clue_height) / 2
+                // console.log("window_width: ".concat(window_width))
+                // var string = "heights -> window: ".concat(window_height).concat(", clue: ").concat(clue_height).concat(", keypad: ").concat(keypad_height)
+                // console.log(string)
+
+                if (window_width < 600) {
+                	clue_mt = (window_height - (keypad_height + clue_height + 10)) / 2
+                	keypad_mt = clue_mt
+                	keypad_ml = 0
+                	keypad_width = window_width - 10
+                }
+                
+                else {
+                	clue_mt = (window_height - (clue_height + 70 + keypad_height)) / 2
+                	keypad_mt = 70
+                	keypad_ml = (window_width - 500) / 2
+                	keypad_width = 500
+                }
+
+                // console.log("clue_mt: ".concat(clue_mt))
 
                 document.getElementById('clue').style.marginTop = clue_mt + 'px'
-                document.getElementById('keypad').style.marginTop = clue_mt + 'px'
+                document.getElementById('keypad').style.marginTop = keypad_mt + 'px'
+                document.getElementById('keypad').style.marginLeft = keypad_ml + 'px'
+                document.getElementById('keypad').style.width = keypad_width + 'px'
             }
 
             var key = []
@@ -98,11 +131,11 @@
                 key.push(split[1])
                 key.push(split[3])
 
-                console.log("Random clue generated, key:")
-                for(var a = 0; a < number_of_key; a++) {
-                    console.log(key[a])
-                    granted.push(false)
-                }
+                // console.log("Random clue generated, key:")
+                // for(var a = 0; a < number_of_key; a++) {
+                //     console.log(key[a])
+                //     granted.push(false)
+                // }
             }
         
 
@@ -158,11 +191,25 @@
                 }
             }
             
-            positionize()
-            randomize(4, 2, 2)
+            
 
-            function onDeviceReady() { StatusBar.backgroundColorByHexString("#388E3C") }
+            function onDeviceReady() { 
+            	StatusBar.backgroundColorByHexString("#388E3C")
+            }
+
+            function onLoaded() { 
+            	positionize()
+            randomize(4, 2, 2)
+            	document.getElementById('clue').style.opacity = 1
+            	document.getElementById('keypad').style.opacity = 1
+            }
+
             document.addEventListener("deviceready", onDeviceReady, false);
+            document.addEventListener('DOMContentLoaded', onLoaded, false);
+
+            window.addEventListener('resize', function(event){
+			  positionize()
+			});
         </script>
     </body>
 </html>
