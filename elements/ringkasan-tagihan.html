@@ -314,12 +314,37 @@
                         });
                         ini.totalTerpilih += (jumlah * 1000);
 
-                        if (tagihan.nama == ("Makan" || "Minum" || "Obat" || "Snack"))  ini.totalMakan += (jumlah * 1000);
-                        else if (tagihan.nama == "Laundry")                             ini.totalLaundry += (jumlah * 1000);
-                        else if (tagihan.nama.match(/pulsa/i))                          ini.totalPulsa += (jumlah * 1000);
-                        else if (tagihan.nama.match(/buku/i))                           ini.totalKuliah += (jumlah * 1000);
-                        else if (tagihan.nama == "Transportasi")                        ini.totalTransportasi += (jumlah * 1000);
-                        else                                                            ini.totalLainnya += (jumlah * 1000);
+                        if (    (tagihan.nama.match(/tapcash/i))    ||
+                                (tagihan.nama.match(/makan/i))      ||
+                                (tagihan.nama.match(/minum/i))      ||
+                                (tagihan.nama.match(/obat/i))       ||
+                                (tagihan.nama.match(/snack/i))      ||
+                                (tagihan.nama.match(/24x/i))        ){
+                            ini.totalMakan += (jumlah * 1000);
+                        } 
+
+                        else if (tagihan.nama.match(/laundry/i))     ini.totalLaundry += (jumlah * 1000);
+                        else if (tagihan.nama.match(/pulsa/i))       ini.totalPulsa += (jumlah * 1000);
+                        
+                        else if (   (tagihan.nama.match(/buku/i))       || 
+                                    (tagihan.nama.match(/cetak/i))      ||
+                                    (tagihan.nama.match(/kertas/i))     ||
+                                    (tagihan.nama.match(/fotokopi/i))   ||
+                                    (tagihan.nama.match(/jilid/i))      ||
+                                    (tagihan.nama.match(/materi/i))     ||
+                                    (tagihan.nama.match(/alat\stulis/i)) ){
+                            ini.totalKuliah += (jumlah * 1000);
+                        }      
+
+                        else if (   (tagihan.nama.match(/transportasi/i)) || 
+                                    (tagihan.nama.match(/gojek/i))        ||
+                                    (tagihan.nama.match(/go-pay/i))       ||
+                                    (tagihan.nama.match(/parkir/i))       ||
+                                    (tagihan.nama.match(/bensin/i))       ||
+                                    (tagihan.nama.match(/e-money/i))      ){
+                            ini.totalTransportasi += (jumlah * 1000);
+                        }     
+                        else ini.totalLainnya += (jumlah * 1000);
                     });
                     document.querySelector('#color-makan').style.width =        ((ini.totalMakan / ini.totalTerpilih) * 100) + '%';
                     document.querySelector('#color-laundry').style.width =      ((ini.totalLaundry / ini.totalTerpilih) * 100) + '%';
